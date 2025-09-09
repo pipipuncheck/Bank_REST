@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "cards")
@@ -26,7 +27,7 @@ public class Card {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String validityPeriod;
+    private LocalDate validityPeriod;
 
     @Enumerated(EnumType.STRING)
     private Status status;

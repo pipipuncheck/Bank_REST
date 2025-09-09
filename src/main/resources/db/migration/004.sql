@@ -1,0 +1,1 @@
+ALTER TABLE cards ALTER COLUMN validity_period TYPE DATE USING validity_period::date;

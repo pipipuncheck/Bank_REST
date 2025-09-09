@@ -43,7 +43,7 @@ public class User implements UserDetails {
         if (role != null){
             return List.of(new SimpleGrantedAuthority("ROLE_" + role));
         }
-        return null;
+        return List.of();
     }
     @Override
     public String getPassword() {
