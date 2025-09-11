@@ -6,34 +6,31 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 @Entity
-@Table(name = "cards")
+@Table(name = "card_requests")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Card {
+public class CardRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String number;
-
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    private LocalDate validityPeriod;
+    @ManyToOne
+    @JoinColumn(name = "card_id")
+    private Card card;
 
     @Enumerated(EnumType.STRING)
-    private CardStatus status;
+    private RequestType requestType;
 
-    @Column(precision = 15, scale = 2)
-    private BigDecimal balance;
-
+    @Enumerated(EnumType.STRING)
+    private RequestStatus status;
 
 }
+

@@ -1,6 +1,6 @@
 package com.example.bankcards.dto;
 
-import com.example.bankcards.entity.Status;
+import com.example.bankcards.entity.CardStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +16,6 @@ public class CardQuery {
     private String number;
     private String fullName;
     private String validityPeriod;
-    private Status status;
+    private CardStatus status;
     private BigDecimal balance;
 }

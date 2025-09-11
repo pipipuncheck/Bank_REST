@@ -1,23 +1,20 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.CardCommand;
 import com.example.bankcards.dto.CardQuery;
-import com.example.bankcards.entity.Card;
-import com.example.bankcards.entity.Status;
-import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.*;
 import com.example.bankcards.exception.EntityNotFoundException;
+import com.example.bankcards.exception.InvalidDataException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.util.MakeCardNumber;
-import com.example.bankcards.util.MakeMaskCardNumber;
+import com.example.bankcards.util.CardOperation;
 import com.example.bankcards.util.mapper.CardMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,45 +23,114 @@ public class CardService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final CardMapper cardMapper;
+    private final CardOperation cardOperation;
 
-    public void createCard(CardCommand command){
-
-        User user = userRepository.findById(command.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        LocalDate validityPeriod = LocalDate.now().plusYears(10);
-
-        Card card = Card.builder()
-                .user(user)
-                .number(MakeCardNumber.generateCardNumber())
-                .validityPeriod(validityPeriod)
-                .status(Status.ACTIVE)
-                .balance(BigDecimal.ZERO)
-                .build();
-
-        cardRepository.save(card);
+    public Page<CardQuery> getAllCards(Pageable pageable) {
+        Page<Card> cardPage = cardRepository.findAll(pageable);
+        return cardPage.map(cardMapper::toDTO);
     }
 
-    public List<CardQuery> getAll(String username){
-        User user = userRepository.findUserByUsername(username)
+    public Page<CardQuery> getUserCards(UserDetails userDetails, Pageable pageable) {
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        List<CardQuery> cards = cardMapper.toDTO(user.getCards());
+        Page<Card> cardPage = cardRepository.findByUserId(user.getId(), pageable);
+        return cardPage.map(cardMapper::toDTO);
+    }
 
-        return cards.stream()
-                .map(a ->
-                {
-                    String number = a.getNumber();
-                    a.setNumber(MakeMaskCardNumber.maskCardNumber(number));
-                    a.setFullName(user.getUsername());
-                    return a;
-                }
-                )
-                .collect(Collectors.toList());
+    public Page<CardQuery> searchUserCards(UserDetails userDetails, String searchTerm, Pageable pageable) {
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Page<Card> cardPage = cardRepository.findByUserIdAndNumberContaining(user.getId(), searchTerm, pageable);
+        return cardPage.map(cardMapper::toDTO);
+    }
+
+    public BigDecimal getBalance(UserDetails userDetails, Integer cardId){
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+
+        if (!card.getUser().getId().equals(user.getId())) {
+            throw new InvalidDataException("Card does not belong to the user");
+        }
+
+        return card.getBalance();
+    }
+    public CardQuery getById(UserDetails userDetails, Integer cardId){
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+
+        if (!card.getUser().getId().equals(user.getId())) {
+            throw new InvalidDataException("Card does not belong to the user");
+        }
+
+        return cardMapper.toDTO(card);
+    }
+
+    public void createCard(UserDetails userDetails){
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        cardOperation.createCard(user);
+    }
+
+    public void deleteCard(UserDetails userDetails, Integer cardId){
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+
+        if (!card.getUser().getId().equals(user.getId())) {
+            throw new InvalidDataException("Card does not belong to the user");
+        }
+
+        cardOperation.deleteCard(card);
 
     }
 
+    public void activateCard(UserDetails userDetails, Integer cardId){
 
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+
+        if (!card.getUser().getId().equals(user.getId())) {
+            throw new InvalidDataException("Card does not belong to the user");
+        }
+
+        cardOperation.unblockCard(card);
+
+    }
+
+    public void blockCard(UserDetails userDetails, Integer cardId){
+
+        User user = userRepository.findUserByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+
+        if (!card.getUser().getId().equals(user.getId())) {
+            throw new InvalidDataException("Card does not belong to the user");
+        }
+
+        cardOperation.blockCard(card);
+
+    }
 
 }
