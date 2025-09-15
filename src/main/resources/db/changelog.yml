@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/migration/004.sql
   - include:
       file: db/migration/005.sql
+  - include:
+      file: db/migration/006.sql

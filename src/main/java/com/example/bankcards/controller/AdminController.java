@@ -136,7 +136,7 @@ public class AdminController {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен - требуется роль ADMIN")
     })
-    @PutMapping("/users/{userId}/delete")
+    @DeleteMapping("/users/{userId}")
     public void deleteUser(
             @Parameter(description = "ID пользователя для удаления", example = "1")
             @PathVariable Integer userId) {

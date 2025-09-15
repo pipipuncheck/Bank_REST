@@ -23,10 +23,11 @@ public class CardOperation {
 
     public void createCard(User user) {
         LocalDate validityPeriod = LocalDate.now().plusYears(10);
+        String number = DataEncryptor.encrypt(MakeCardNumber.generateCardNumber());
 
         Card card = Card.builder()
                 .user(user)
-                .number(MakeCardNumber.generateCardNumber())
+                .number(number)
                 .validityPeriod(validityPeriod)
                 .status(CardStatus.ACTIVE)
                 .balance(BigDecimal.ZERO)
