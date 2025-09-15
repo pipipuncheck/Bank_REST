@@ -34,6 +34,6 @@ RESTful API для управления банковскими картами с
 ### 1. Запуск базы данных в Docker
 
 ```bash
-git clone <https://github.com/pipipuncheck/Bank_REST>
+git clone https://github.com/pipipuncheck/Bank_REST
 
 docker-compose up -d
